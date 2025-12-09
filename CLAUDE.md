@@ -1,6 +1,7 @@
 # ValueCell - 项目架构文档
 
 ## 变更记录 (Changelog)
+- 2025-12-09: 配置管理模块文档创建完成，覆盖率提升至 76.2%
 - 2025-12-05 20:02: 第五次深度扫描完成，深入探索了数据源适配器、渲染器组件、图表组件、数据库模型、前端表单组件、测试文件和工具类库，覆盖率提升至 75.1%
 - 2025-12-05 19:58: 第三次增量扫描完成，新增 CI/CD 工作流和构建脚本文档，覆盖率提升至 27.9%
 - 2025-12-05 19:53: 增量扫描完成，新增适配器、Tauri、配置和文档模块的详细文档
@@ -85,6 +86,7 @@ graph TD
 | [python/valuecell/server](./python/valuecell/server/CLAUDE.md) | Python | FastAPI 后端服务 | main.py, api/app.py, db/models/ | ❌ |
 | [python/valuecell/agents](./python/valuecell/agents/CLAUDE.md) | Python | 专业金融智能体实现 | research_agent/, grid_agent/, news_agent/ | ✅ |
 | [python/valuecell/adapters](./python/valuecell/adapters/CLAUDE.md) | Python | 数据源适配器，统一多数据提供商接口 | assets/manager.py, adapters/ | ✅ |
+| [python/valuecell/config](./python/valuecell/config/CLAUDE.md) | Python | 配置管理模块，三层覆盖系统 | loader.py, manager.py, constants.py | ✅ |
 | [frontend/src](./frontend/src/CLAUDE.md) | TypeScript/React | React 前端应用源码 | root.tsx, routes.ts, components/ | ❌ |
 | [frontend/src-tauri] | Rust | Tauri 桌面应用 Rust 后端 | src/main.rs, Cargo.toml | ❌ |
 | [configs] | YAML/JSON | 配置文件系统 | config.yaml, agents/, providers/ | ❌ |
