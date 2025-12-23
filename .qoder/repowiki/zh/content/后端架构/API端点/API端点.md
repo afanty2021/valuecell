@@ -2,6 +2,10 @@
 
 <cite>
 **本文档中引用的文件**   
+- [models.py](file://python/valuecell/server/api/routers/models.py)
+- [model.py](file://python/valuecell/server/api/schemas/model.py)
+- [setting.ts](file://frontend/src/api/setting.ts)
+- [model-detail.tsx](file://frontend/src/app/setting/components/models/model-detail.tsx)
 - [agent.py](file://python/valuecell/server/api/routers/agent.py)
 - [conversation.py](file://python/valuecell/server/api/routers/conversation.py)
 - [strategy.py](file://python/valuecell/server/api/routers/strategy.py)
@@ -20,6 +24,12 @@
 - [api.ts](file://frontend/src/constants/api.ts)
 </cite>
 
+## 更新摘要
+**已更改内容**   
+- 在“模型管理”部分新增了“模型可用性检查”端点
+- 更新了“认证与错误处理”部分以反映新的模型检查功能
+- 添加了新的前后端交互示例，展示模型可用性检查的调用方式
+
 ## 目录
 1. [简介](#简介)
 2. [核心API路由器](#核心api路由器)
@@ -30,8 +40,9 @@
 7. [用户配置 (user_profile)](#用户配置-user_profile)
 8. [自选股列表 (watchlist)](#自选股列表-watchlist)
 9. [流式接口 (SSE)](#流式接口-sse)
-10. [认证与错误处理](#认证与错误处理)
-11. [前后端交互示例](#前后端交互示例)
+10. [模型管理](#模型管理)
+11. [认证与错误处理](#认证与错误处理)
+12. [前后端交互示例](#前后端交互示例)
 
 ## 简介
 本文档详细介绍了ValueCell项目中基于FastAPI实现的RESTful API端点。系统提供了一套完整的金融智能体管理接口，涵盖智能体、对话、交易策略、任务调度、用户配置和自选股列表等核心功能。所有API均遵循统一的响应格式，通过`/api/v1`前缀提供服务，并采用Pydantic模型进行请求和响应的数据结构定义。前端通过React Query进行数据获取和状态管理，与后端实现高效交互。
@@ -46,6 +57,7 @@
 - [task.py](file://python/valuecell/server/api/routers/task.py)
 - [user_profile.py](file://python/valuecell/server/api/routers/user_profile.py)
 - [watchlist.py](file://python/valuecell/server/api/routers/watchlist.py)
+- [models.py](file://python/valuecell/server/api/routers/models.py)
 
 ```mermaid
 graph TB
@@ -58,32 +70,37 @@ E[user_profile.py]
 F[watchlist.py]
 G[agent_stream.py]
 H[strategy_agent.py]
+I[models.py]
 end
 subgraph "Frontend"
-I[agent.ts]
-J[conversation.ts]
+J[agent.ts]
+K[conversation.ts]
+L[setting.ts]
 end
 subgraph "Schemas"
-K[base.py]
-L[agent.py]
-M[conversation.py]
-N[strategy.py]
-O[agent_stream.py]
+M[base.py]
+N[agent.py]
+O[conversation.py]
+P[strategy.py]
+Q[agent_stream.py]
+R[model.py]
 end
-A --> K
-B --> K
-C --> K
-D --> K
-E --> K
-F --> K
-G --> K
-A --> L
+A --> M
 B --> M
-C --> N
-G --> O
-I --> A
-J --> B
-J --> D
+C --> M
+D --> M
+E --> M
+F --> M
+G --> M
+A --> N
+B --> O
+C --> P
+G --> Q
+I --> R
+J --> A
+K --> B
+K --> D
+L --> I
 ```
 
 ## 智能体管理 (agent)
@@ -501,12 +518,74 @@ J --> D
 - [strategy_agent.py](file://python/valuecell/server/api/routers/strategy_agent.py#L45-L327)
 - [agent_stream.py](file://python/valuecell/server/api/schemas/agent_stream.py#L10-L39)
 
+## 模型管理
+该模块提供对LLM模型配置的管理功能，包括可用性检查、提供商配置和模型列表管理。
+
+### 模型可用性检查
+- **HTTP方法**: `POST`
+- **URL路径**: `/api/v1/models/check`
+- **功能**: 执行最小化的实时请求以验证模型是否响应。此端点不验证提供商配置或API密钥的存在。
+- **请求/响应数据结构**:
+  - **请求**: `CheckModelRequest`，包含`provider`、`model_id`和可选的`api_key`。
+  - **响应**: `SuccessResponse[CheckModelResponse]`，包含可用性检查结果。
+- **认证机制**: 无特定认证要求。
+- **错误码**:
+  - `400`: 模型ID未指定且提供商无默认模型。
+  - `404`: 指定的提供商未找到。
+  - `500`: 检查模型失败。
+
+### 获取模型提供商列表
+- **HTTP方法**: `GET`
+- **URL路径**: `/api/v1/models/providers`
+- **功能**: 列出可用的提供商及其基本信息。
+- **请求/响应数据结构**:
+  - **请求**: 无请求体。
+  - **响应**: `SuccessResponse[List[ModelProviderSummary]]`。
+- **认证机制**: 无特定认证要求。
+- **错误码**:
+  - `500`: 获取提供商列表失败。
+
+### 获取提供商详细信息
+- **HTTP方法**: `GET`
+- **URL路径**: `/api/v1/models/providers/{provider}`
+- **功能**: 获取特定提供商的配置和模型信息。
+- **路径参数**:
+  - `provider` (str): 服务提供商名称。
+- **请求/响应数据结构**:
+  - **请求**: 无请求体。
+  - **响应**: `SuccessResponse[ProviderDetailData]`。
+- **认证机制**: 无特定认证要求。
+- **错误码**:
+  - `404`: 指定的提供商未找到。
+  - `500`: 获取提供商信息失败。
+
+### 更新提供商配置
+- **HTTP方法**: `PUT`
+- **URL路径**: `/api/v1/models/providers/{provider}/config`
+- **功能**: 更新提供商的API密钥和主机配置。
+- **路径参数**:
+  - `provider` (str): 服务提供商名称。
+- **请求/响应数据结构**:
+  - **请求**: `ProviderUpdateRequest`，包含`api_key`和`base_url`。
+  - **响应**: `SuccessResponse[ProviderDetailData]`。
+- **认证机制**: 无特定认证要求。
+- **错误码**:
+  - `404`: 指定的提供商未找到。
+  - `500`: 更新提供商配置失败。
+
+**Section sources**
+- [models.py](file://python/valuecell/server/api/routers/models.py#L487-L887)
+- [model.py](file://python/valuecell/server/api/schemas/model.py#L89-L114)
+- [setting.ts](file://frontend/src/api/setting.ts#L180-L184)
+- [model-detail.tsx](file://frontend/src/app/setting/components/models/model-detail.tsx#L70-L259)
+
 ## 认证与错误处理
 
 ### 认证机制
 本系统目前采用简化的认证模型：
 - 大多数API端点使用一个全局默认用户ID `"default_user"`，适用于开源版本。
 - 敏感操作（如策略创建）通过在请求体中直接传递API密钥来实现，系统会动态更新环境变量中的密钥。
+- 新增了模型可用性检查功能，允许使用临时API密钥进行测试，而不会影响现有配置。
 - 未来版本可能引入更完善的API Key或JWT认证机制。
 
 ### 错误处理
@@ -515,6 +594,7 @@ J --> D
 - **成功响应**: `SuccessResponse`，`code`为0，`msg`为"success"。
 - **错误响应**: `ErrorResponse`，`code`为标准HTTP状态码或自定义错误码，`data`为null。
 - **错误码枚举**: `StatusCode` 枚举定义了`SUCCESS`、`BAD_REQUEST`、`UNAUTHORIZED`、`FORBIDDEN`、`NOT_FOUND`和`INTERNAL_ERROR`等状态码。
+- **新增模型检查状态码**: 包括`auth_failed`、`timeout`、`request_failed`、`probe_unavailable`等，用于详细描述模型可用性检查结果。
 
 **Section sources**
 - [base.py](file://python/valuecell/server/api/schemas/base.py#L12-L58)
@@ -534,6 +614,13 @@ const { data: history } = useGetConversationHistory(conversationId);
 // 取消任务
 const { mutate: cancelTask } = useCancelTask();
 cancelTask(taskId);
+
+// 检查模型可用性
+const { mutateAsync: checkAvailability } = useCheckModelAvailability();
+const result = await checkAvailability({
+  provider: "openai",
+  model_id: "gpt-4o"
+});
 ```
 
 ### 实际调用示例 (curl)
@@ -554,6 +641,11 @@ curl -X POST http://localhost:8000/api/v1/strategies/create \
     "exchange_config": {"exchange_id": "binance", "api_key": "...", "secret_key": "..."},
     "trading_config": {"strategy_type": "PromptBasedStrategy", "prompt_text": "..." }
   }'
+
+# 检查模型可用性
+curl -X POST http://localhost:8000/api/v1/models/check \
+  -H "Content-Type: application/json" \
+  -d '{"provider": "openai", "model_id": "gpt-4o"}'
 ```
 
 ### 作用说明
@@ -562,8 +654,10 @@ curl -X POST http://localhost:8000/api/v1/strategies/create \
 - **策略交易**: 前端通过此模块展示策略的性能、持仓和交易历史，是策略监控的核心。
 - **任务调度**: 前端通过轮询`/scheduled-task-results`端点来实时更新任务状态。
 - **流式接口**: 前端通过SSE连接接收智能体的实时响应，实现类似ChatGPT的流式输出效果。
+- **模型管理**: 前端通过`useCheckModelAvailability` Hook调用新的模型可用性检查端点，让用户在配置模型时能够验证其可用性，而无需保存配置。
 
 **Section sources**
 - [agent.ts](file://frontend/src/api/agent.ts)
 - [conversation.ts](file://frontend/src/api/conversation.ts)
 - [api.ts](file://frontend/src/constants/api.ts)
+- [setting.ts](file://frontend/src/api/setting.ts#L180-L184)
