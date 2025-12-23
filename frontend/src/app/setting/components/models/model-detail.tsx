@@ -1,11 +1,12 @@
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { useForm } from "@tanstack/react-form";
-import { openUrl } from "@tauri-apps/plugin-opener";
 import { Eye, EyeOff, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import {
   useAddProviderModel,
+  useCheckModelAvailability,
   useDeleteProviderModel,
   useGetModelProviderDetail,
   useSetDefaultProvider,
@@ -35,7 +36,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Switch } from "@/components/ui/switch";
-import { useTauriInfo } from "@/hooks/use-tauri-info";
+import LinkButton from "@/components/valuecell/button/link-button";
 
 const configSchema = z.object({
   api_key: z.string(),
@@ -52,7 +53,7 @@ type ModelDetailProps = {
 };
 
 export function ModelDetail({ provider }: ModelDetailProps) {
-  const { isTauriApp } = useTauriInfo();
+  const { t } = useTranslation();
 
   const { data: providerDetail, isLoading: detailLoading } =
     useGetModelProviderDetail(provider);
@@ -65,6 +66,12 @@ export function ModelDetail({ provider }: ModelDetailProps) {
     useSetDefaultProviderModel();
   const { mutate: setDefaultProvider, isPending: settingDefaultProvider } =
     useSetDefaultProvider();
+  const {
+    data: checkResult,
+    mutateAsync: checkAvailability,
+    isPending: checkingAvailability,
+    reset: resetCheckResult,
+  } = useCheckModelAvailability();
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
@@ -95,8 +102,11 @@ export function ModelDetail({ provider }: ModelDetailProps) {
   }, [providerDetail, configForm.setFieldValue]);
 
   useEffect(() => {
-    if (provider) setShowApiKey(false);
-  }, [provider]);
+    if (provider) {
+      setShowApiKey(false);
+      resetCheckResult();
+    }
+  }, [provider, resetCheckResult]);
 
   const addModelForm = useForm({
     defaultValues: {
@@ -133,11 +143,14 @@ export function ModelDetail({ provider }: ModelDetailProps) {
     addingModel ||
     deletingModel ||
     settingDefaultModel ||
-    settingDefaultProvider;
+    settingDefaultProvider ||
+    checkingAvailability;
 
   if (detailLoading) {
     return (
-      <div className="text-gray-400 text-sm">Loading provider details...</div>
+      <div className="text-muted-foreground text-sm">
+        {t("settings.models.loading")}
+      </div>
     );
   }
 
@@ -148,10 +161,12 @@ export function ModelDetail({ provider }: ModelDetailProps) {
   return (
     <div className="scroll-container flex flex-1 flex-col px-8">
       <div className="mb-4 flex items-center justify-between">
-        <p className="font-semibold text-gray-950 text-lg">{provider}</p>
+        <p className="font-semibold text-foreground text-lg">
+          {t(`strategy.providers.${provider}`) || provider}
+        </p>
         <div className="flex items-center gap-2">
-          <p className="font-semibold text-base text-gray-700">
-            Default Provider
+          <p className="font-semibold text-base text-muted-foreground">
+            {t("settings.models.defaultProvider")}
           </p>
           <Switch
             checked={providerDetail.is_default}
@@ -166,57 +181,94 @@ export function ModelDetail({ provider }: ModelDetailProps) {
           <FieldGroup>
             <configForm.Field name="api_key">
               {(field) => (
-                <Field className="text-gray-950">
+                <Field className="text-foreground">
                   <FieldLabel
                     htmlFor="api_key"
                     className="font-medium text-base"
                   >
-                    API key
+                    {t("settings.models.apiKey")}
                   </FieldLabel>
-                  <InputGroup>
-                    <InputGroupInput
-                      type={showApiKey ? "text" : "password"}
-                      id="api_key"
-                      placeholder={"Enter API key"}
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={() => configForm.handleSubmit()}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          e.currentTarget.blur();
-                        }
+                  <div className="flex items-center gap-4">
+                    <InputGroup>
+                      <InputGroupInput
+                        type={showApiKey ? "text" : "password"}
+                        id="api_key"
+                        placeholder={t("settings.models.enterApiKey")}
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={() => configForm.handleSubmit()}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            e.currentTarget.blur();
+                          }
+                        }}
+                      />
+                      <InputGroupAddon align="inline-end">
+                        <InputGroupButton
+                          type="button"
+                          variant="ghost"
+                          size="icon-xs"
+                          onClick={() => setShowApiKey(!showApiKey)}
+                          aria-label={
+                            showApiKey
+                              ? t("settings.models.hidePassword")
+                              : t("settings.models.showPassword")
+                          }
+                        >
+                          {showApiKey ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </InputGroupButton>
+                      </InputGroupAddon>
+                    </InputGroup>
+
+                    <Button
+                      type="button"
+                      variant={"outline"}
+                      disabled={isBusy}
+                      onClick={async () => {
+                        await checkAvailability({
+                          provider,
+                          model_id: providerDetail.default_model_id,
+                        });
                       }}
-                    />
-                    <InputGroupAddon align="inline-end">
-                      <InputGroupButton
-                        type="button"
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={() => setShowApiKey(!showApiKey)}
-                        aria-label={
-                          showApiKey ? "Hide password" : "Show password"
-                        }
-                      >
-                        {showApiKey ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </InputGroupButton>
-                    </InputGroupAddon>
-                  </InputGroup>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      isTauriApp
-                        ? openUrl(providerDetail.api_key_url)
-                        : window.open(providerDetail.api_key_url, "_blank")
-                    }
-                    className="w-fit! cursor-pointer text-sm underline underline-offset-4 hover:text-gray-700"
+                    >
+                      {checkingAvailability
+                        ? t("settings.models.waitingForCheck")
+                        : t("settings.models.checkAvailability")}
+                    </Button>
+                  </div>
+                  {checkResult?.data && (
+                    <div className="text-sm">
+                      {checkResult.data.ok ? (
+                        <span className="text-green-600">
+                          {t("settings.models.available")}
+                          {checkResult.data.status
+                            ? ` (${checkResult.data.status})`
+                            : ""}
+                        </span>
+                      ) : (
+                        <span className="text-red-600">
+                          {t("settings.models.unavailable")}
+                          {checkResult.data.status
+                            ? ` (${checkResult.data.status})`
+                            : ""}
+                          {checkResult.data.error
+                            ? `: ${checkResult.data.error}`
+                            : ""}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  <LinkButton
+                    className="w-fit! hover:text-foreground"
+                    url={providerDetail.api_key_url}
                   >
-                    Click here to get the API key
-                  </button>
+                    {t("settings.models.getApiKey")}
+                  </LinkButton>
                   <FieldError errors={field.state.meta.errors} />
                 </Field>
               )}
@@ -225,9 +277,9 @@ export function ModelDetail({ provider }: ModelDetailProps) {
             {/* API Host section */}
             <configForm.Field name="base_url">
               {(field) => (
-                <Field className="text-gray-950">
+                <Field className="text-foreground">
                   <FieldLabel className="font-medium text-base">
-                    API Host
+                    {t("settings.models.apiHost")}
                   </FieldLabel>
                   <Input
                     placeholder={providerDetail.base_url}
@@ -250,17 +302,19 @@ export function ModelDetail({ provider }: ModelDetailProps) {
           {/* Models section */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <div className="font-medium text-base text-gray-950">Models</div>
+              <div className="font-medium text-base text-foreground">
+                {t("settings.models.models")}
+              </div>
               <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                 <DialogTrigger asChild>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-8 border-gray-200 px-2.5 font-semibold text-gray-700 text-sm"
+                    className="h-8 border-border px-2.5 font-semibold text-muted-foreground text-sm"
                     disabled={isBusy}
                   >
                     <Plus className="size-4" />
-                    Add
+                    {t("settings.models.add")}
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
@@ -271,7 +325,7 @@ export function ModelDetail({ provider }: ModelDetailProps) {
                     }}
                   >
                     <DialogHeader>
-                      <DialogTitle>Add Model</DialogTitle>
+                      <DialogTitle>{t("settings.models.addModel")}</DialogTitle>
                       <DialogDescription />
                     </DialogHeader>
                     <div className="flex flex-col gap-4 py-4">
@@ -280,10 +334,10 @@ export function ModelDetail({ provider }: ModelDetailProps) {
                           {(field) => (
                             <Field>
                               <FieldLabel className="font-medium text-sm">
-                                Model ID
+                                {t("settings.models.modelId")}
                               </FieldLabel>
                               <Input
-                                placeholder="Enter model ID"
+                                placeholder={t("settings.models.enterModelId")}
                                 value={field.state.value}
                                 onChange={(e) =>
                                   field.handleChange(e.target.value)
@@ -299,10 +353,12 @@ export function ModelDetail({ provider }: ModelDetailProps) {
                           {(field) => (
                             <Field>
                               <FieldLabel className="font-medium text-sm">
-                                Model Name
+                                {t("settings.models.modelName")}
                               </FieldLabel>
                               <Input
-                                placeholder="Enter model name"
+                                placeholder={t(
+                                  "settings.models.enterModelName",
+                                )}
                                 value={field.state.value}
                                 onChange={(e) =>
                                   field.handleChange(e.target.value)
@@ -325,14 +381,14 @@ export function ModelDetail({ provider }: ModelDetailProps) {
                           setIsAddDialogOpen(false);
                         }}
                       >
-                        Cancel
+                        {t("settings.models.cancel")}
                       </Button>
                       <Button
                         className="flex-1"
                         type="submit"
                         disabled={isBusy || !addModelForm.state.canSubmit}
                       >
-                        Confirm
+                        {t("settings.models.confirm")}
                       </Button>
                     </DialogFooter>
                   </form>
@@ -341,17 +397,17 @@ export function ModelDetail({ provider }: ModelDetailProps) {
             </div>
 
             {providerDetail.models.length === 0 ? (
-              <div className="rounded-lg border border-gray-200 border-dashed p-4 text-gray-400 text-sm">
-                No models configured for this provider.
+              <div className="rounded-lg border border-border border-dashed p-4 text-muted-foreground text-sm">
+                {t("settings.models.noModels")}
               </div>
             ) : (
-              <div className="flex flex-col gap-2 rounded-lg border border-gray-200 bg-white p-3">
+              <div className="flex flex-col gap-2 rounded-lg border border-border bg-card p-3">
                 {providerDetail.models.map((m) => (
                   <div
                     key={m.model_id}
                     className="flex items-center justify-between"
                   >
-                    <span className="font-normal text-gray-950 text-sm">
+                    <span className="font-normal text-foreground text-sm">
                       {m.model_name}
                     </span>
 

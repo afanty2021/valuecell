@@ -1,4 +1,5 @@
 import { memo, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 import { useGetStockPrice, useGetWatchlist } from "@/api/stock";
 import {
@@ -9,12 +10,12 @@ import {
 import type { Stock } from "@/types/stock";
 
 function StockList() {
+  const { t } = useTranslation();
   const { pathname } = useLocation();
   const { data: stockList } = useGetWatchlist();
 
   const stockData = useMemo(() => {
-    const allStocks = stockList?.flatMap((group) => group.items) ?? [];
-    return allStocks;
+    return stockList?.flatMap((group) => group.items) ?? [];
   }, [stockList]);
 
   // Extract stock symbol (e.g., AAPL) from path like /stock/AAPL
@@ -30,8 +31,6 @@ function StockList() {
         symbol: stock.symbol,
         companyName: stock.display_name,
         price: stockPrice?.price_formatted ?? "N/A",
-        currency: stockPrice?.currency ?? "USD",
-        changeAmount: stockPrice?.change ?? 0,
         changePercent: stockPrice?.change_percent,
       }),
       [stock, stockPrice],
@@ -48,8 +47,8 @@ function StockList() {
   };
 
   return (
-    <StockMenu>
-      <StockMenuHeader>My Watchlist</StockMenuHeader>
+    <StockMenu className="h-full">
+      <StockMenuHeader>{t("home.watchlist")}</StockMenuHeader>
       <div className="scroll-container">
         {stockData?.map((stock) => (
           <StockItem key={stock.symbol} stock={stock} />

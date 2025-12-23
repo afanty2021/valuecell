@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { API_QUERY_KEYS, USER_LANGUAGE } from "@/constants/api";
+import { API_QUERY_KEYS, VALUECELL_BACKEND_URL } from "@/constants/api";
 import { type ApiResponse, apiClient } from "@/lib/api-client";
+import { useLanguage } from "@/store/settings-store";
+import { useSystemStore } from "@/store/system-store";
 import type {
   Stock,
   StockDetail,
@@ -17,17 +19,20 @@ export const useGetWatchlist = () =>
     select: (data) => data.data,
   });
 
-export const useGetStocksList = (params: { query: string }) =>
-  useQuery({
-    queryKey: API_QUERY_KEYS.STOCK.stockSearch(Object.values(params)),
+export const useGetStocksList = (params: { query: string }) => {
+  const language = useLanguage();
+
+  return useQuery({
+    queryKey: API_QUERY_KEYS.STOCK.stockSearch([params.query, language]),
     queryFn: ({ signal }) =>
       apiClient.get<ApiResponse<{ results: Stock[] }>>(
-        `watchlist/asset/search?q=${params.query}&language=${USER_LANGUAGE}`,
+        `watchlist/asset/search?q=${params.query}&language=${language}`,
         { signal },
       ),
     select: (data) => data.data.results,
     enabled: !!params.query,
   });
+};
 
 export const useAddStockToWatchlist = () => {
   const queryClient = useQueryClient();
@@ -64,7 +69,10 @@ export const useGetStockPrice = (params: { ticker: string }) =>
     queryKey: API_QUERY_KEYS.STOCK.stockPrice(Object.values(params)),
     queryFn: () =>
       apiClient.get<ApiResponse<StockPrice>>(
-        `watchlist/asset/${params.ticker}/price`,
+        `${useSystemStore.getState().access_token ? "" : ""}/watchlist/asset/${params.ticker}/price`,
+        {
+          requiresAuth: !!useSystemStore.getState().access_token,
+        },
       ),
     select: (data) => data.data,
     enabled: !!params.ticker,
@@ -79,8 +87,11 @@ export const useGetStockHistory = (params: {
   useQuery({
     queryKey: API_QUERY_KEYS.STOCK.stockHistory(Object.values(params)),
     queryFn: () =>
-      apiClient.get<ApiResponse<StockHistory>>(
-        `watchlist/asset/${params.ticker}/price/historical?interval=${params.interval}&start_date=${params.start_date}&end_date=${params.end_date}`,
+      apiClient.get<ApiResponse<StockHistory[]>>(
+        `${VALUECELL_BACKEND_URL}/watchlist/asset/${params.ticker}/price/historical?interval=${params.interval}&start_date=${params.start_date}&end_date=${params.end_date}`,
+        {
+          requiresAuth: true,
+        },
       ),
     select: (data) => data.data,
     enabled: !!params.ticker,
@@ -91,7 +102,10 @@ export const useGetStockDetail = (params: { ticker: string }) =>
     queryKey: API_QUERY_KEYS.STOCK.stockDetail(Object.values(params)),
     queryFn: () =>
       apiClient.get<ApiResponse<StockDetail>>(
-        `watchlist/asset/${params.ticker}`,
+        `${useSystemStore.getState().access_token ? "" : ""}/watchlist/asset/${params.ticker}`,
+        {
+          requiresAuth: !!useSystemStore.getState().access_token,
+        },
       ),
     select: (data) => data.data,
     enabled: !!params.ticker,
