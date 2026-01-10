@@ -5,13 +5,13 @@ import {
   type ReactNode,
   useMemo,
 } from "react";
+import { useTranslation } from "react-i18next";
 import { NavLink, useLocation } from "react-router";
 import { useGetAgentList } from "@/api/agent";
 import {
   Conversation,
   Logo,
   Market,
-  Ranking,
   Setting,
   StrategyAgent,
 } from "@/assets/svg";
@@ -126,6 +126,7 @@ const SidebarMenuItem: FC<SidebarItemProps> = ({
 };
 
 const AppSidebar: FC = () => {
+  const { t } = useTranslation();
   const pathArray = useLocation().pathname.split("/");
 
   const prefix = useMemo(() => {
@@ -144,25 +145,25 @@ const AppSidebar: FC = () => {
         {
           id: "home",
           icon: Logo,
-          label: "Home",
+          label: t("nav.home"),
           to: "/home",
         },
         {
           id: "strategy",
           icon: StrategyAgent,
-          label: "Strategy",
+          label: t("nav.strategy"),
           to: "/agent/StrategyAgent",
         },
-        {
-          id: "ranking",
-          icon: Ranking,
-          label: "Ranking",
-          to: "/ranking",
-        },
+        // {
+        //   id: "ranking",
+        //   icon: Ranking,
+        //   label: t("nav.ranking"),
+        //   to: "/ranking",
+        // },
         {
           id: "market",
           icon: Market,
-          label: "Market",
+          label: t("nav.market"),
           to: "/market",
         },
       ],
@@ -170,12 +171,12 @@ const AppSidebar: FC = () => {
         {
           id: "setting",
           icon: Setting,
-          label: "Setting",
+          label: t("nav.setting"),
           to: "/setting",
         },
       ],
     };
-  }, []);
+  }, [t]);
 
   const { data: agentList } = useGetAgentList({ enabled_only: "true" });
   const agentItems = useMemo(() => {

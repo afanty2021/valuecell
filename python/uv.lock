@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 2
 requires-python = ">=3.12"
 resolution-markers = [
     "python_full_version >= '3.14'",
@@ -61,6 +61,9 @@ google = [
 lancedb = [
     { name = "lancedb" },
     { name = "tantivy" },
+]
+ollama = [
+    { name = "ollama" },
 ]
 openai = [
     { name = "openai" },
@@ -1939,6 +1942,19 @@ wheels = [
 ]
 
 [[package]]
+name = "ollama"
+version = "0.6.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "httpx" },
+    { name = "pydantic" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/9d/5a/652dac4b7affc2b37b95386f8ae78f22808af09d720689e3d7a86b6ed98e/ollama-0.6.1.tar.gz", hash = "sha256:478c67546836430034b415ed64fa890fd3d1ff91781a9d548b3325274e69d7c6", size = 51620, upload-time = "2025-11-13T23:02:17.416Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/47/4f/4a617ee93d8208d2bcf26b2d8b9402ceaed03e3853c754940e2290fed063/ollama-0.6.1-py3-none-any.whl", hash = "sha256:fc4c984b345735c5486faeee67d8a265214a31cbb828167782dc642ce0a2bf8c", size = 14354, upload-time = "2025-11-13T23:02:16.292Z" },
+]
+
+[[package]]
 name = "openai"
 version = "1.107.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2530,6 +2546,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/19/9b/45539c0724be34455655e70a4a6a3123ad338719687391dc037db0f7462d/pylance-0.38.3-cp39-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:b6a3c786f80d0bf8a2da379b89211d3ad9f3c723394bd9e78e5a234d65701b59", size = 44592430, upload-time = "2025-10-28T11:35:19.708Z" },
     { url = "https://files.pythonhosted.org/packages/6d/f3/8bed7707fc4b5bc6032ba1b7af8f2211af9d39f6fe925ae78961a14c85c7/pylance-0.38.3-cp39-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:a169b2a254b8cb26399a0cc570784995280d2900d0ed8e50fbd3c38f21a3af76", size = 48024285, upload-time = "2025-10-28T11:38:53.192Z" },
     { url = "https://files.pythonhosted.org/packages/06/49/84966b5e28648740b157bd90e7a89ec99a835cb66a0a619e41c60ec71073/pylance-0.38.3-cp39-abi3-win_amd64.whl", hash = "sha256:ea106742c2032d3ed8aa9232923eed2054aabf683a769ddc564c285ce20b950d", size = 49747295, upload-time = "2025-10-28T11:56:25.262Z" },
+]
+
+[[package]]
+name = "pymysql"
+version = "1.1.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f5/ae/1fe3fcd9f959efa0ebe200b8de88b5a5ce3e767e38c7ac32fb179f16a388/pymysql-1.1.2.tar.gz", hash = "sha256:4961d3e165614ae65014e361811a724e2044ad3ea3739de9903ae7c21f539f03", size = 48258, upload-time = "2025-08-24T12:55:55.146Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7c/4c/ad33b92b9864cbde84f259d5df035a6447f91891f5be77788e2a3892bce3/pymysql-1.1.2-py3-none-any.whl", hash = "sha256:e6b1d89711dd51f8f74b1631fe08f039e7d76cf67a42a323d3178f0f25762ed9", size = 45300, upload-time = "2025-08-24T12:55:53.394Z" },
 ]
 
 [[package]]
@@ -3638,11 +3663,11 @@ wheels = [
 
 [[package]]
 name = "valuecell"
-version = "0.1.19"
+version = "0.1.20"
 source = { editable = "." }
 dependencies = [
     { name = "a2a-sdk", extra = ["http-server"] },
-    { name = "agno", extra = ["google", "lancedb", "openai"] },
+    { name = "agno", extra = ["google", "lancedb", "ollama", "openai"] },
     { name = "aiofiles" },
     { name = "aiosqlite" },
     { name = "akshare" },
@@ -3655,6 +3680,7 @@ dependencies = [
     { name = "loguru" },
     { name = "markdown" },
     { name = "pydantic" },
+    { name = "pymysql" },
     { name = "python-dateutil" },
     { name = "python-okx" },
     { name = "pytz" },
@@ -3700,7 +3726,7 @@ test = [
 [package.metadata]
 requires-dist = [
     { name = "a2a-sdk", extras = ["http-server"], specifier = ">=0.3.4" },
-    { name = "agno", extras = ["openai", "google", "lancedb"], specifier = ">=2.0,<3.0" },
+    { name = "agno", extras = ["openai", "google", "lancedb", "ollama"], specifier = ">=2.0,<3.0" },
     { name = "aiofiles", specifier = ">=24.1.0" },
     { name = "aiosqlite", specifier = ">=0.19.0" },
     { name = "akshare", specifier = ">=1.17.87" },
@@ -3714,6 +3740,7 @@ requires-dist = [
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "markdown", specifier = ">=3.9" },
     { name = "pydantic", specifier = ">=2.0.0" },
+    { name = "pymysql", specifier = ">=1.1.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.4.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=1.0.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.1.0" },
