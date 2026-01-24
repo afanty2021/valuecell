@@ -233,3 +233,6 @@ logs
 python/configs/
 
 *.key
+
+# Spec workflow templates
+.spec-workflow/
