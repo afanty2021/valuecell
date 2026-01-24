@@ -110,7 +110,7 @@ python/valuecell/config/
 
 2. **智能提供商选择**
    ```python
-   # 自动检测优先级
+   # 自动检测优先级（v0.1.20 更新）
    preferred_order = [
        "openrouter",
        "siliconflow",
@@ -118,6 +118,7 @@ python/valuecell/config/
        "openai",
        "openai-compatible",
        "azure",
+       "ollama",  # v0.1.20 新增本地模型支持
    ]
    ```
 
@@ -155,13 +156,18 @@ python/valuecell/config/
 ```yaml
 app:
   name: "ValueCell"
-  version: "0.1.17"
+  version: "0.1.20"
 
 models:
   primary_provider: "openrouter"  # 默认提供商
   defaults:
     temperature: 0.7
     max_tokens: 4096
+  # v0.1.20 新增: LLM 等待时间配置
+  wait_time:
+    enabled: true
+    min_wait: 1.0   # 最小等待时间（秒）
+    max_wait: 5.0   # 最大等待时间（秒）
 
 providers:
   openrouter:
@@ -169,6 +175,16 @@ providers:
     connection:
       api_key_env: "OPENROUTER_API_KEY"
     default_model: "anthropic/claude-3.5-sonnet"
+
+  # v0.1.20 新增: Ollama 本地模型配置
+  ollama:
+    enabled: true
+    connection:
+      host: "http://localhost:11434"  # Ollama 服务地址
+    default_model: "llama2"
+    parameters:
+      num_ctx: 4096
+      temperature: 0.7
 ```
 
 ### 智能体配置 (agents/research_agent.yaml)
@@ -310,7 +326,25 @@ if not is_valid:
 
 1. 创建 `providers/{new_provider}.yaml`
 2. 定义连接参数和模型列表
-3. 在 ConfigManager 中添加特定逻辑（如需要）
+3. 在 `adapters/models/factory.py` 中注册提供商类
+4. 在 ConfigManager 中添加特定逻辑（如需要）
+
+**示例：添加 Ollama 提供商（v0.1.20）**
+```yaml
+# configs/providers/ollama.yaml
+name: "Ollama"
+enabled: true
+connection:
+  host: "http://localhost:11434"
+default_model: "llama2"
+models:
+  - id: "llama2"
+    name: "Llama 2"
+    context_length: 4096
+  - id: "llama3"
+    name: "Llama 3"
+    context_length: 8192
+```
 
 ### 2. 添加新智能体
 
@@ -357,4 +391,5 @@ def custom_validation(config: Dict) -> Tuple[bool, List[str]]:
 
 ## 更新日志
 
+- 2026-01-10: 更新到 v0.1.20，新增 Ollama 本地模型提供商和 LLM 等待时间配置
 - 2025-12-09: 初始文档创建，覆盖率提升至 76.2%

@@ -137,4 +137,5 @@ A: 继承 BaseResponse，在 ResponseRouter 中添加路由规则。
 - `conversation/service.py`: 对话服务
 
 ## 变更记录 (Changelog)
+- 2026-01-10: 更新到 v0.1.20，核心引擎支持新的模型提供商（Ollama）和 i18n 增强
 - 2025-12-05: 初始文档创建，梳理核心模块结构

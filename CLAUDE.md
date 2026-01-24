@@ -1,6 +1,8 @@
 # ValueCell - 项目架构文档
 
 ## 变更记录 (Changelog)
+- 2026-01-24: Git 同步完成，合并上游最新变更，完善模型管理 API、TradingView 组件和 i18n 多语言支持
+- 2026-01-10: Git 同步完成，合并上游 v0.1.20 版本，新增 Ollama 本地模型支持、i18n 覆盖增强、LLM 等待时间配置等功能
 - 2025-12-23: Git 同步完成，合并上游 10+ 个新提交（v0.1.19 版本），包含 TradingView 插件、国际化支持、主题设置、模型验证增强等功能
 - 2025-12-10: Git 同步完成，合并上游 6 个新提交（v0.1.18 版本），包含 UI 进度条、新 logo、健康检查、API 输入框优化等功能
 - 2025-12-09: 配置管理模块文档创建完成，覆盖率提升至 76.2%
@@ -85,7 +87,7 @@ graph TD
 | 模块路径 | 语言 | 职责描述 | 核心文件 | 测试覆盖 |
 |---------|------|---------|---------|---------|
 | [python/valuecell/core](./python/valuecell/core/CLAUDE.md) | Python | 智能体协调引擎，管理请求生命周期 | orchestrator.py, super_agent.py, planner.py | ✅ |
-| [python/valuecell/server](./python/valuecell/server/CLAUDE.md) | Python | FastAPI 后端服务 | main.py, api/app.py, db/models/ | ❌ |
+| [python/valuecell/server](./python/valuecell/server/CLAUDE.md) | Python | FastAPI 后端服务 | main.py, api/app.py, routers/models.py | ✅ |
 | [python/valuecell/agents](./python/valuecell/agents/CLAUDE.md) | Python | 专业金融智能体实现 | research_agent/, grid_agent/, news_agent/ | ✅ |
 | [python/valuecell/adapters](./python/valuecell/adapters/CLAUDE.md) | Python | 数据源适配器，统一多数据提供商接口 | assets/manager.py, adapters/ | ✅ |
 | [python/valuecell/config](./python/valuecell/config/CLAUDE.md) | Python | 配置管理模块，三层覆盖系统 | loader.py, manager.py, constants.py | ✅ |
@@ -200,6 +202,7 @@ pytest --cov=valuecell
 ### 2. 数据源抽象
 - 统一的适配器接口
 - 支持多数据源（Yahoo Finance、AKShare、BaoStock）
+- TradingView 图表集成，支持专业金融数据展示
 - 智能故障转移机制
 - 数据缓存和优化
 
@@ -224,6 +227,7 @@ pytest --cov=valuecell
 - **agno**: 智能体框架
 - **loguru**: 结构化日志
 - **ccxt**: 加密货币交易库
+- **Ollama**: 本地 LLM 模型支持（v0.1.20 新增）
 
 ### 前端技术
 - **React 19**: 最新版本的 React
@@ -232,6 +236,8 @@ pytest --cov=valuecell
 - **Zustand**: 轻量级状态管理
 - **React Query**: 服务器状态管理
 - **ECharts**: 数据可视化
+- **TradingView**: 专业金融图表集成（v0.1.19 新增）
+- **i18next**: 国际化框架，支持中/英/日/繁中（v0.1.19 增强）
 
 ### 桌面应用
 - **Tauri**: 轻量级跨平台框架
@@ -344,9 +350,21 @@ pytest --cov=valuecell
 
 ## 最新版本信息
 
-**当前版本**: v0.1.19 (2025-12-23)
+**当前版本**: v0.1.20 (2026-01-10)
 
-### v0.1.19 更新内容
+**产品发布**: ValueCell 已上线 A 股深度研究和市场分析功能，无需部署即可访问 [valuecell.ai](https://valuecell.ai)
+
+### v0.1.20 更新内容
+- 🤖 **本地模型**: 新增 Ollama 本地模型提供商支持，允许用户使用本地 LLM
+- 🌍 **国际化增强**: 大幅扩展 i18n 覆盖范围，新增日文支持，完善多语言体验（en/zh_CN/zh_TW/ja）
+- ⏱️ **LLM 等待时间**: 引入 LLM 等待时间配置，优化模型响应处理
+- 📊 **模型管理 API**: 新增 `/models` 路由，提供模型配置默认值、提供商管理等接口
+- 📈 **TradingView 集成**: 新增 TradingView 高级图表组件和股票代码映射
+- 📝 **文档扩展**: 扩展架构文档，新增 TradingView、i18n 和模型可用性说明
+- 🧹 **代码清理**: 注释掉未使用的前端路由，优化代码结构
+- 🔗 **README 优化**: 移除下载链接，简化项目入口信息
+
+### v0.1.19 历史更新
 - ✨ **新增功能**: TradingView 插件支持显示指数和股票信息
 - 🌍 **国际化**: 完整的国际化支持（i18n），支持多语言界面
 - 🎨 **主题设置**: 通用设置中新增主题选项（Light / Dark / System）

@@ -55,7 +55,7 @@ app = create_app()
 
 #### 6. 数据管理
 - `routers/watchlist.py`: 观察列表
-- `routers/models.py`: 模型管理
+- `routers/models.py`: 模型管理（v0.1.20 新增 Ollama 支持）
 - `routers/conversation.py`: 对话管理
 - `schemas/watchlist.py`: 观察列表模型
 - `schemas/conversation.py`: 对话模型
@@ -192,4 +192,5 @@ A: FastAPI 自带 CORS 中间件，在 `app.py` 中配置。
 - `api/schemas/`: Pydantic 模型定义
 
 ## 变更记录 (Changelog)
+- 2026-01-10: 更新到 v0.1.20，新增 Ollama 模型支持、LLM 等待时间配置、i18n 扩展
 - 2025-12-05: 初始文档创建，梳理服务器模块结构

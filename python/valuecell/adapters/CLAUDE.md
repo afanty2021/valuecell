@@ -146,11 +146,19 @@ A: 通过多数据源交叉验证，智能选择最可靠的数据源。
 - `assets/baostock_adapter.py`: BaoStock 适配器
 
 ### 工厂和模型
-- `models/factory.py`: 适配器工厂
+- `models/factory.py`: 模型适配器工厂，支持多个 LLM 提供商
 - `models/__init__.py`: 模型导出
+
+### 支持的模型提供商
+- **OpenAI**: GPT-4, GPT-3.5 等系列
+- **DeepSeek**: DeepSeek 系列模型
+- **DashScope**: 通义千问系列模型
+- **Ollama**: 本地 LLM 提供商（v0.1.20 新增）
+- **OpenAI Compatible**: 兼容 OpenAI API 的第三方服务
 
 ### 测试文件
 - `assets/tests/test_adapters_comparison.py`: 适配器对比测试
 
 ## 变更记录 (Changelog)
+- 2026-01-10: 更新到 v0.1.20，新增 Ollama 本地模型提供商支持
 - 2025-12-05: 初始文档创建，梳理数据适配器模块结构和接口
